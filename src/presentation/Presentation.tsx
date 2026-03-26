@@ -174,6 +174,123 @@ function MobileWarning() {
   );
 }
 
+function FullscreenPrompt({ onEnterFullscreen, onDismiss }: { onEnterFullscreen: () => void; onDismiss: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0, 0, 0, 0.85)',
+        backdropFilter: 'blur(8px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 9998,
+        padding: 24
+      }}
+    >
+      <motion.div
+        initial={{ scale: 0.9, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        transition={{ delay: 0.1, type: 'spring', stiffness: 300, damping: 25 }}
+        style={{
+          background: 'white',
+          borderRadius: 24,
+          padding: 48,
+          maxWidth: 500,
+          textAlign: 'center',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
+        }}
+      >
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.3, type: 'spring', stiffness: 200 }}
+          style={{ marginBottom: 24, display: 'flex', justifyContent: 'center' }}
+        >
+          <div style={{
+            width: 80,
+            height: 80,
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 10px 30px rgba(37, 99, 235, 0.3)'
+          }}>
+            <Maximize2 size={36} color="white" strokeWidth={2.5} />
+          </div>
+        </motion.div>
+
+        <h2 style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: 28,
+          fontWeight: 700,
+          color: 'var(--text)',
+          marginBottom: 16
+        }}>
+          Experience in Fullscreen
+        </h2>
+
+        <p style={{
+          fontSize: 16,
+          lineHeight: 1.6,
+          color: 'var(--text-soft)',
+          marginBottom: 32
+        }}>
+          For the best viewing experience, we recommend viewing this presentation in fullscreen mode. Enjoy immersive animations and distraction-free content.
+        </p>
+
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onEnterFullscreen}
+            style={{
+              padding: '14px 32px',
+              borderRadius: 12,
+              border: 'none',
+              background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+              color: 'white',
+              fontSize: 16,
+              fontWeight: 600,
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8
+            }}
+          >
+            <Maximize2 size={18} />
+            Enter Fullscreen
+          </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onDismiss}
+            style={{
+              padding: '14px 32px',
+              borderRadius: 12,
+              border: '2px solid var(--border)',
+              background: 'transparent',
+              color: 'var(--text-soft)',
+              fontSize: 16,
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            Skip
+          </motion.button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 export default function Presentation() {
   const [currentSlide, setCurrentSlide] = useState(() => {
     const saved = localStorage.getItem(SLIDE_STORAGE_KEY);
@@ -183,6 +300,7 @@ export default function Presentation() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [imagesPreloaded, setImagesPreloaded] = useState(false);
+  const [showFullscreenPrompt, setShowFullscreenPrompt] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const slideNavHandlerRef = useRef<((direction: 'prev' | 'next') => boolean) | null>(null);
 
@@ -230,17 +348,26 @@ export default function Presentation() {
     return () => clearTimeout(timeout);
   }, []);
 
-  // Auto-enter fullscreen on desktop
+  // Show fullscreen prompt after images are preloaded
   useEffect(() => {
-    if (!isMobile && imagesPreloaded && containerRef.current) {
+    if (!isMobile && imagesPreloaded && !document.fullscreenElement) {
       const timer = setTimeout(() => {
-        containerRef.current?.requestFullscreen().catch(() => {
-          // Silently fail if fullscreen is not supported or blocked
-        });
-      }, 500);
+        setShowFullscreenPrompt(true);
+      }, 800);
       return () => clearTimeout(timer);
     }
   }, [isMobile, imagesPreloaded]);
+
+  const handleEnterFullscreen = useCallback(() => {
+    setShowFullscreenPrompt(false);
+    containerRef.current?.requestFullscreen().catch(() => {
+      // Silently fail if fullscreen is not supported or blocked
+    });
+  }, []);
+
+  const handleDismissPrompt = useCallback(() => {
+    setShowFullscreenPrompt(false);
+  }, []);
 
   useEffect(() => { localStorage.setItem(SLIDE_STORAGE_KEY, currentSlide.toString()); }, [currentSlide]);
 
@@ -302,7 +429,17 @@ export default function Presentation() {
   }
 
   return (
-    <div ref={containerRef} style={{ position: 'relative', width: '100%', height: '100vh', background: 'var(--bg)', backgroundColor: '#fafafa', backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(0,0,0,0.08) 1px, transparent 0)', backgroundSize: '24px 24px', overflow: 'hidden' }}>
+    <>
+      <AnimatePresence>
+        {showFullscreenPrompt && (
+          <FullscreenPrompt 
+            onEnterFullscreen={handleEnterFullscreen}
+            onDismiss={handleDismissPrompt}
+          />
+        )}
+      </AnimatePresence>
+
+      <div ref={containerRef} style={{ position: 'relative', width: '100%', height: '100vh', background: 'var(--bg)', backgroundColor: '#fafafa', backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(0,0,0,0.08) 1px, transparent 0)', backgroundSize: '24px 24px', overflow: 'hidden' }}>
       <FloatingShapes />
       <NavigationControls onPrev={prevSlide} onNext={nextSlide} canGoPrev={currentSlide > 0} canGoNext={currentSlide < SLIDES.length - 1} isFullscreen={isFullscreen} onToggleFullscreen={toggleFullscreen} currentSlide={currentSlide} totalSlides={SLIDES.length} />
       <AnimatePresence mode="wait" custom={direction}>
@@ -323,5 +460,6 @@ export default function Presentation() {
         Arrow keys navigate // F fullscreen // 1-9 jump
       </div>
     </div>
+    </>
   );
 }
