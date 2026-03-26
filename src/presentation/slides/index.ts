@@ -1,0 +1,9 @@
+export { default as Slide1Title } from './Slide1Title.tsx';
+export { default as Slide2RuralReality } from './Slide2RuralReality.tsx';
+export { default as Slide3CriticalGaps } from './Slide3CriticalGaps.tsx';
+export { default as Slide4DermAid } from './Slide4DermAid.tsx';
+export { default as Slide5Architecture } from './Slide5Architecture.tsx';
+export { default as Slide6Dataset } from './Slide6Dataset.tsx';
+export { default as Slide7Challenges } from './Slide7Challenges.tsx';
+export { default as Slide8Outcomes } from './Slide8Outcomes.tsx';
+export { default as Slide9Impact } from './Slide9Impact.tsx';
