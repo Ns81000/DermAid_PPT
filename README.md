@@ -31,7 +31,7 @@
 
 - **🎨 Beautiful UI** - Modern, clean design with smooth animations
 - **📱 Mobile Detection** - Automatically detects mobile devices and displays a desktop-required message
-- **🖥️ Auto-Fullscreen** - Automatically enters fullscreen mode for immersive presentations
+- **🖥️ Fullscreen Prompt** - Elegant modal prompts users to enter fullscreen mode for optimal viewing
 - **⚡ Smart Preloading** - Preloads all images for seamless offline experience
 - **⌨️ Keyboard Navigation** - Full keyboard support for easy navigation
 - **💾 Progress Saving** - Automatically saves your progress
